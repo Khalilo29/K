@@ -1,7 +1,7 @@
-name: Global Visionary Engine
+name: Visionary X English Engine
 on:
   schedule:
-    - cron: '*/5 * * * *' # النبض السريع: كل 5 دقائق 🚀
+    - cron: '*/5 * * * *' # Fast Pulse: Every 5 Minutes 🚀
   workflow_dispatch:
 
 jobs:
@@ -15,16 +15,16 @@ jobs:
         with:
           python-version: '3.9'
       - name: Install dependencies
-        run: pip install pyTelegramBotAPI feedparser beautifulsoup4 deep-translator
-      - name: Run Engine
+        run: pip install pyTelegramBotAPI feedparser beautifulsoup4
+      - name: Run Global Engine
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
         run: python bot.py
-      - name: Auto-Save Memory
+      - name: Sync Memory
         run: |
-          git config --global user.name "Visionary-AI-Core"
+          git config --global user.name "Visionary-AI-Global"
           git config --global user.email "ai@visionary.com"
           git add published_urls.txt || echo "No changes"
-          git commit -m "Memory Update [skip ci]" || echo "No changes"
+          git commit -m "Memory Sync [skip ci]" || echo "No changes"
           git push
