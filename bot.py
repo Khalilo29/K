@@ -2,48 +2,65 @@ import os
 import telebot
 import feedparser
 import random
+import re
 from bs4 import BeautifulSoup
 
-# إعدادات الربط 🗝️
+# إعدادات الوصول من GitHub Secrets 🗝️
 TOKEN = os.environ.get('BOT_TOKEN')
 CHANNEL_ID = os.environ.get('CHANNEL_ID')
 bot = telebot.TeleBot(TOKEN)
 
-# قائمة المصادر 📡
-RSS_SOURCES = ["https://www.aitnews.com/feed", "https://www.tech-wd.com/wd/feed"]
+# قائمة المصادر التقنية الموثوقة 📡
+RSS_SOURCES = [
+    "https://www.aitnews.com/feed",
+    "https://www.tech-wd.com/wd/feed"
+]
 
-def smart_format_html(text):
-    # تحويل الكلمات الهامة لوسوم ذكية 🏷️
-    tags = {"ذكاء": "#ذكاء_اصطناعي", "آبل": "#آبل", "جوجل": "#جوجل", "تطبيق": "#تطبيق"}
-    for word, tag in tags.items():
-        text = text.replace(word, tag)
-    # إضافة وسم القناة الثابت
-    return text + "\n\n<b>#Visionary_X #تقنية</b>"
+def get_smart_tags(text):
+    """تحليل النص وإضافة وسوم لزيادة المشاهدات 📈"""
+    mapping = {
+        "ذكاء": "#الذكاء_الاصطناعي #AI",
+        "آبل": "#آبل #Apple",
+        "جوجل": "#جوجل #Google",
+        "هاتف": "#هواتف #Tech",
+        "تطبيق": "#تطبيقات"
+    }
+    found_tags = []
+    for key, tag in mapping.items():
+        if key in text:
+            found_tags.append(tag)
+    
+    base_tags = "#Visionary_X #تقنية #تكنولوجيا"
+    return base_tags + " " + " ".join(found_tags)
 
-def run_bot():
+def run_visionary_bot():
+    # اختيار مصدر عشوائي لجلب الخبر
     source = random.choice(RSS_SOURCES)
     feed = feedparser.parse(source)
-    if not feed.entries: return
+    
+    if not feed.entries:
+        print("⚠️ لم يتم العثور على أخبار جديدة.")
+        return
     
     entry = feed.entries[0]
     title = entry.title
-    # تنظيف النص من أي أكواد HTML زائدة
-    summary = BeautifulSoup(entry.summary, 'html.parser').get_text()[:200]
+    # تنظيف الملخص من أي وسوم HTML قديمة
+    summary = BeautifulSoup(entry.summary, 'html.parser').get_text()[:250]
     
-    # بناء الرسالة باستخدام تنسيق HTML 🏗️
-    caption = f"🚨 <b>خبر جديد:</b>\n\n{title}\n\n{summary}..."
-    caption = smart_format_html(caption)
+    # بناء الرسالة بتنسيق HTML لضمان الاستقرار 🏗️
+    tags = get_smart_tags(title + summary)
+    caption = f"🚨 <b>{title}</b>\n\n{summary}...\n\n{tags}"
     
-    # إضافة الأزرار 🔘
+    # إضافة زر تفاعلي 🔘
     markup = telebot.types.InlineKeyboardMarkup()
-    markup.add(telebot.types.InlineKeyboardButton("🔗 التفاصيل الكاملة", url=entry.link))
+    markup.add(telebot.types.InlineKeyboardButton("🔗 إقرأ الخبر كاملاً", url=entry.link))
     
-    # الإرسال النهائي باستخدام HTML لحل مشكلة الرموز ✅
     try:
+        # الإرسال النهائي
         bot.send_message(CHANNEL_ID, caption, parse_mode='HTML', reply_markup=markup)
-        print("✅ تم النشر في القناة بنجاح!")
+        print("✅ تم النشر بنجاح مع الوسوم الذكية!")
     except Exception as e:
-        print(f"❌ خطأ في الإرسال: {e}")
+        print(f"❌ فشل الإرسال: {e}")
 
 if __name__ == "__main__":
-    run_bot()
+    run_visionary_bot()
