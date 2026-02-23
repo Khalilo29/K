@@ -1,55 +1,55 @@
 import os
 import telebot
-from telebot import types
-import random
+import feedparser
+import requests
+from bs4 import BeautifulSoup
 
 # إعدادات الربط 🗝️
 TOKEN = os.environ.get('BOT_TOKEN')
 CHANNEL = os.environ.get('CHANNEL_ID')
 bot = telebot.TeleBot(TOKEN)
 
-# بنك المحتوى الشامل (تخصصي + تفاعلي) 🗄️
-content_pool = [
-    {
-        "category": "الذكاء الاصطناعي 🤖",
-        "text": "💡 *مستقبل التقنية:* الذكاء الاصطناعي ليس مجرد أداة، بل هو شريك في الإبداع. هل بدأت باستخدامه في عملك اليومي؟",
-        "img": "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600"
-    },
-    {
-        "category": "تطوير الذات 🚀",
-        "text": "🌟 *رسالة اليوم:* الانضباط هو الجسر بين الأهداف والإنجاز. استمر في السعي، فالنتائج العظيمة تتطلب وقتاً.",
-        "img": "https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?w=600"
-    },
-    {
-        "category": "أخبار التقنية 📱",
-        "text": "💻 *معلومة رقمية:* لغات البرمجة تتطور باستمرار، لكن تعلم 'المنطق البرمجي' هو ما يجعلك مبرمجاً لا يقهر في أي لغة.",
-        "img": "https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=600"
-    }
-]
+def get_latest_news():
+    # استخدام رابط RSS لموقع تقني (الجزيرة نت - تكنولوجيا كمثال)
+    feed_url = "https://www.aljazeera.net/xml/rss/all/dictator/72b15777-66a9-4676-905c-e69d7b93192a"
+    feed = feedparser.parse(feed_url)
+    
+    if feed.entries:
+        entry = feed.entries[0]
+        title = entry.title
+        link = entry.link
+        summary = entry.summary
+        
+        # محاولة استخراج صورة من الخبر (اختياري)
+        img_url = "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600" # صورة افتراضية
+        
+        return {
+            "caption": f"📰 *خبر تقني جديد:*\n\n*{title}*\n\n{summary[:200]}...",
+            "link": link,
+            "image": img_url
+        }
+    return None
 
-def run_visionary_system():
-    # اختيار عشوائي للمنشور
-    post = random.choice(content_pool)
-    
-    # بناء أزرار التفاعل 🔘
-    markup = types.InlineKeyboardMarkup()
-    btn_share = types.InlineKeyboardButton("📤 مشاركة المعرفة", switch_inline_query="Visionary_X")
-    btn_contact = types.InlineKeyboardButton("👨‍💻 تواصل مع القائد", url="mailto:Khalilodjawad@gmail.com")
-    markup.add(btn_share, btn_contact)
-    
-    # إرسال الصورة مع النص المنسق والأزرار
-    caption = f"*{post['category']}*\n\n{post['text']}"
-    bot.send_photo(
-        CHANNEL, 
-        post['img'], 
-        caption=caption, 
-        parse_mode='Markdown',
-        reply_markup=markup
-    )
+def run_visionary_auto_news():
+    news = get_latest_news()
+    if news:
+        # إنشاء زر لفتح الخبر الأصلي
+        markup = telebot.types.InlineKeyboardMarkup()
+        btn_read = telebot.types.InlineKeyboardButton("🔗 قراءة الخبر كاملاً", url=news['link'])
+        markup.add(btn_read)
+        
+        # إرسال الخبر للقناة
+        bot.send_photo(
+            CHANNEL, 
+            news['image'], 
+            caption=news['caption'], 
+            parse_mode='Markdown',
+            reply_markup=markup
+        )
 
 if __name__ == "__main__":
     try:
-        run_visionary_system()
-        print("✅ تم تشغيل النظام الشامل بنجاح!")
+        run_visionary_auto_news()
+        print("✅ تم جلب ونشر الخبر التلقائي بنجاح!")
     except Exception as e:
         print(f"❌ خطأ في النظام: {e}")
