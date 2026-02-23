@@ -2,12 +2,12 @@ import os
 import telebot
 import random
 
-# إعداد الاتصال بالبوت والقناة
+# إعداد البيانات
 TOKEN = os.environ.get('BOT_TOKEN')
 CHANNEL = os.environ.get('CHANNEL_ID')
 bot = telebot.TeleBot(TOKEN)
 
-# مخزن المحتوى المطور (نصائح، حكم، وتطوير) 📚
+# مخزن الرسائل الذكية 📚
 messages = [
     "🚀 *رؤية اليوم:* النجاح ليس وجهة، بل هو رحلة مستمرة من التطوير.",
     "💡 *نصيحة تقنية:* تعلم المنطق البرمجي أهم من حفظ الأكواد المجردة.",
@@ -20,14 +20,10 @@ messages = [
 ]
 
 def send_random_post():
-    # اختيار رسالة عشوائية من المخزن
     content = random.choice(messages)
-    # إرسال الرسالة بتنسيق Markdown لجعلها تبدو احترافية
     bot.send_message(CHANNEL, content, parse_mode='Markdown')
 
 if __name__ == "__main__":
     if TOKEN and CHANNEL:
         send_random_post()
-        print("✅ تم نشر المحتوى الجديد بنجاح!")
-    else:
-        print("❌ خطأ: لم يتم العثور على مفاتيح الربط (Secrets).")
+        print("✅ تم النشر بنجاح!")
