@@ -1,9 +1,11 @@
-name: run-bot
+name: run-bot-automatically
 
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
+  schedule:
+    - cron: '0 * * * *' # سأقوم بتشغيل البوت لك تلقائياً كل رأس ساعة
+  workflow_dispatch: 
 
 jobs:
   build:
@@ -22,7 +24,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyTelegramBotAPI deep-translator
 
-      - name: Run Global Engine
+      - name: Run Bot
         run: python bot.py
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
