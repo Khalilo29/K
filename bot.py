@@ -1,29 +1,33 @@
-name: Auto Post Bot
+import os
+import telebot
+import random
 
-on:
-  push:
-    branches: [ main ]  # يعمل عند تحديث الكود
-  schedule:
-    - cron: '*/5 * * * *'  # ⏰ الجدولة: يعمل تلقائياً كل 5 دقائق
+# إعداد الاتصال بالبوت والقناة
+TOKEN = os.environ.get('BOT_TOKEN')
+CHANNEL = os.environ.get('CHANNEL_ID')
+bot = telebot.TeleBot(TOKEN)
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+# مخزن المحتوى المطور (نصائح، حكم، وتطوير) 📚
+messages = [
+    "🚀 *رؤية اليوم:* النجاح ليس وجهة، بل هو رحلة مستمرة من التطوير.",
+    "💡 *نصيحة تقنية:* تعلم المنطق البرمجي أهم من حفظ الأكواد المجردة.",
+    "🌟 *Visionary X:* المستقبل ينتمي لأولئك الذين يؤمنون بجمال أحلامهم.",
+    "🛠️ *قاعدة العمل:* الجودة تعني أداء العمل بإتقان حتى في غياب الرقابة.",
+    "📖 *اقتباس:* العقل الذي يتوسع بفكرة جديدة لا يعود أبداً إلى أبعاده الأصلية.",
+    "💻 *تطوير:* البرمجة هي فن حل المشكلات قبل أن تكون مجرد كتابة أسطر.",
+    "🎨 *إبداع:* لا تنتظر الإلهام، ابحث عنه في التفاصيل الصغيرة من حولك.",
+    "🔋 *تحفيز:* طاقتك هي أغلى ما تملك، استثمرها فيما يبني مستقبلك الرقمي."
+]
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+def send_random_post():
+    # اختيار رسالة عشوائية من المخزن
+    content = random.choice(messages)
+    # إرسال الرسالة بتنسيق Markdown لجعلها تبدو احترافية
+    bot.send_message(CHANNEL, content, parse_mode='Markdown')
 
-      - name: Set up Python
-        uses: actions/set up-python@v2
-        with:
-          python-version: '3.x'
-
-      - name: Install dependencies
-        run: pip install pyTelegramBotAPI
-
-      - name: Run Bot
-        env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
-        run: python bot.py
+if __name__ == "__main__":
+    if TOKEN and CHANNEL:
+        send_random_post()
+        print("✅ تم نشر المحتوى الجديد بنجاح!")
+    else:
+        print("❌ خطأ: لم يتم العثور على مفاتيح الربط (Secrets).")
