@@ -3,64 +3,77 @@ import telebot
 import feedparser
 import random
 from bs4 import BeautifulSoup
+from deep_translator import GoogleTranslator
 
 # الإعدادات 🗝️
 TOKEN = os.environ.get('BOT_TOKEN')
 CHANNEL_ID = os.environ.get('CHANNEL_ID')
 bot = telebot.TeleBot(TOKEN)
 
-# الذاكرة (ملف نصي يحفظ الروابط المنشورة)
+# مصادر متنوعة لضمان وجود محتوى كل 5 دقائق 📡
+SOURCES = {
+    "AR": [
+        "https://www.aitnews.com/feed", 
+        "https://www.tech-wd.com/wd/feed",
+        "https://ar.technologyreview.com/feed/"
+    ],
+    "EN": [
+        "https://www.theverge.com/rss/index.xml", 
+        "https://www.engadget.com/rss.xml",
+        "https://www.wired.com/feed/rss"
+    ]
+}
+
 HISTORY_FILE = "published_urls.txt"
 
-def get_image(entry):
-    soup = BeautifulSoup(entry.summary, 'html.parser')
-    img = soup.find('img')
-    return img['src'] if img else None
-
-def run_visionary_safe():
-    # 1. قراءة الروابط المنشورة سابقاً
-    published_urls = []
-    if os.path.exists(HISTORY_FILE):
-        with open(HISTORY_FILE, "r") as f:
-            published_urls = f.read().splitlines()
-
-    # 2. جلب الأخبار من المصادر
-    sources = ["https://www.aitnews.com/feed", "https://www.tech-wd.com/wd/feed"]
-    feed = feedparser.parse(random.choice(sources))
-    
-    # 3. البحث عن خبر جديد لم يُنشر بعد
-    target_entry = None
-    for entry in feed.entries:
-        if entry.link not in published_urls:
-            target_entry = entry
-            break
-    
-    if not target_entry:
-        print("💤 لا توجد أخبار جديدة حالياً. تم نشر كل شيء بالفعل.")
-        return
-
-    # 4. تنسيق ونشر الخبر الجديد فقط
-    img_url = get_image(target_entry)
-    caption = f"⭐ <b>{target_entry.title}</b>\n\n🌐 #تكنولوجيا #أخبار\n📱 #Visionary_X"
-    
-    markup = telebot.types.InlineKeyboardMarkup()
-    markup.add(telebot.types.InlineKeyboardButton("🔗 إقرأ التفاصيل", url=target_entry.link))
-    markup.row(telebot.types.InlineKeyboardButton("👍", callback_data="1"), 
-               telebot.types.InlineKeyboardButton("🚀", callback_data="2"))
-
+def translate_content(text):
     try:
-        if img_url:
-            bot.send_photo(CHANNEL_ID, img_url, caption=caption, parse_mode='HTML', reply_markup=markup)
-        else:
-            bot.send_message(CHANNEL_ID, caption, parse_mode='HTML', reply_markup=markup)
-        
-        # 5. تحديث الذاكرة فوراً لمنع التكرار مستقبلاً
-        with open(HISTORY_FILE, "a") as f:
-            f.write(target_entry.link + "\n")
-        print(f"✅ تم نشر خبر جديد وحفظه في الذاكرة: {target_entry.title}")
-        
-    except Exception as e:
-        print(f"❌ خطأ: {e}")
+        return GoogleTranslator(source='en', target='ar').translate(text)
+    except:
+        return text
+
+def get_image(entry):
+    soup = BeautifulSoup(entry.summary if 'summary' in entry else "", 'html.parser')
+    img = soup.find('img')
+    if img: return img['src']
+    if 'media_content' in entry: return entry.media_content[0]['url']
+    return None
+
+def run_visionary_autopilot():
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE, "r") as f: published_urls = f.read().splitlines()
+    else: published_urls = []
+
+    # دمج المصادر والبحث عن خبر جديد
+    lang_type = random.choice(["AR", "EN"])
+    feed = feedparser.parse(random.choice(SOURCES[lang_type]))
+    
+    for entry in feed.entries[:15]:
+        if entry.link not in published_urls:
+            title = translate_content(entry.title) if lang_type == "EN" else entry.title
+            img_url = get_image(entry)
+            
+            header = "🌍 <b>Visionary Global | خبر عالمي</b>" if lang_type == "EN" else "🔔 <b>Visionary News | خبر عاجل</b>"
+            caption = f"{header}\n\n🔥 {title}\n\n🌐 #تكنولوجيا #الذكاء_الاصطناعي\n📱 @Visionary_X"
+            
+            markup = telebot.types.InlineKeyboardMarkup()
+            markup.row(telebot.types.InlineKeyboardButton("🔗 تفاصيل الخبر", url=entry.link))
+            markup.row(telebot.types.InlineKeyboardButton("👍", callback_data="1"), 
+                       telebot.types.InlineKeyboardButton("🔥", callback_data="2"),
+                       telebot.types.InlineKeyboardButton("🚀", callback_data="3"))
+
+            try:
+                if img_url:
+                    bot.send_photo(CHANNEL_ID, img_url, caption=caption, parse_mode='HTML', reply_markup=markup)
+                else:
+                    bot.send_message(CHANNEL_ID, caption, parse_mode='HTML', reply_markup=markup)
+                
+                with open(HISTORY_FILE, "a") as f: f.write(entry.link + "\n")
+                print(f"✅ تم النشر بنجاح: {title}")
+                return
+            except Exception as e:
+                print(f"❌ خطأ: {e}")
+    print("💤 لا توجد أخبار جديدة في هذه الخمس دقائق.")
 
 if __name__ == "__main__":
-    run_visionary_safe()
+    run_visionary_autopilot()
