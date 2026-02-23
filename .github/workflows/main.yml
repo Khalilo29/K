@@ -1,36 +1,30 @@
-name: Visionary X Bot
+name: Global Visionary Engine
 on:
   schedule:
-    - cron: '0 */2 * * *' # ينشر خبراً كل ساعتين
+    - cron: '*/5 * * * *' # النبض السريع: كل 5 دقائق 🚀
   workflow_dispatch:
 
 jobs:
-  build:
+  run-bot:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # تسمح للبوت بتعديل ملف الذاكرة وحفظه
+      contents: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-
       - name: Install dependencies
-        run: pip install pyTelegramBotAPI feedparser beautifulsoup4
-
-      - name: Run Bot
+        run: pip install pyTelegramBotAPI feedparser beautifulsoup4 deep-translator
+      - name: Run Engine
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
         run: python bot.py
-
-      - name: Save memory
+      - name: Auto-Save Memory
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "Visionary-AI-Core"
+          git config --global user.email "ai@visionary.com"
           git add published_urls.txt || echo "No changes"
-          git commit -m "Update history [skip ci]" || echo "No changes"
+          git commit -m "Memory Update [skip ci]" || echo "No changes"
           git push
