@@ -28,3 +28,6 @@ jobs:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
         run: python bot.py
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
