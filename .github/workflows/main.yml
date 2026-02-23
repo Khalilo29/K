@@ -1,12 +1,14 @@
 name: Visionary X Bot
 on:
   schedule:
-    - cron: '0 */2 * * *' # يعمل كل ساعتين تلقائياً
-  workflow_dispatch: # للتشغيل اليدوي
+    - cron: '0 */2 * * *' # ينشر خبراً جديداً كل ساعتين
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions: # إضافة صلاحيات الكتابة بشكل صريح داخل الملف
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -17,8 +19,7 @@ jobs:
           python-version: '3.9'
 
       - name: Install dependencies
-        run: |
-          pip install pyTelegramBotAPI feedparser beautifulsoup4
+        run: pip install pyTelegramBotAPI feedparser beautifulsoup4
 
       - name: Run Bot
         env:
@@ -28,8 +29,8 @@ jobs:
 
       - name: Save memory
         run: |
-          git config --global user.name "Visionary Bot"
-          git config --global user.email "bot@visionary.com"
-          git add published_urls.txt
-          git commit -m "Update published news history [skip ci]" || echo "No changes to commit"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add published_urls.txt || echo "No changes to add"
+          git commit -m "Update history [skip ci]" || echo "No changes to commit"
           git push
