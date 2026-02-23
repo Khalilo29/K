@@ -1,55 +1,48 @@
 import os
 import telebot
 import feedparser
-import requests
+import random
 from bs4 import BeautifulSoup
 
-# إعدادات الربط 🗝️
+# إعدادات البوت والقناة 🔑
 TOKEN = os.environ.get('BOT_TOKEN')
-CHANNEL = os.environ.get('CHANNEL_ID')
+CHANNEL_ID = os.environ.get('CHANNEL_ID')
 bot = telebot.TeleBot(TOKEN)
 
-def get_latest_news():
-    # استخدام رابط RSS لموقع تقني (الجزيرة نت - تكنولوجيا كمثال)
-    feed_url = "https://www.aljazeera.net/xml/rss/all/dictator/72b15777-66a9-4676-905c-e69d7b93192a"
-    feed = feedparser.parse(feed_url)
-    
-    if feed.entries:
-        entry = feed.entries[0]
-        title = entry.title
-        link = entry.link
-        summary = entry.summary
-        
-        # محاولة استخراج صورة من الخبر (اختياري)
-        img_url = "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600" # صورة افتراضية
-        
-        return {
-            "caption": f"📰 *خبر تقني جديد:*\n\n*{title}*\n\n{summary[:200]}...",
-            "link": link,
-            "image": img_url
-        }
-    return None
+# قائمة المصادر الشاملة التي سنراقبها 📡
+RSS_SOURCES = [
+    "https://www.aitnews.com/feed",         # البوابة العربية للأخبار التقنية
+    "https://www.tech-wd.com/wd/feed",      # عالم التقنية
+    "https://www.aljazeera.net/xml/rss/all/dictator/72b15777-66a9-4676-905c-e69d7b93192a" # الجزيرة تقنية
+]
 
-def run_visionary_auto_news():
+def get_latest_news():
+    all_news = []
+    for url in RSS_SOURCES:
+        feed = feedparser.parse(url)
+        if feed.entries:
+            # نأخذ أحدث خبر من كل مصدر
+            all_news.append(feed.entries[0])
+    
+    # نختار خبراً واحداً عشوائياً لنشره الآن
+    return random.choice(all_news) if all_news else None
+
+def start_bot():
     news = get_latest_news()
     if news:
-        # إنشاء زر لفتح الخبر الأصلي
+        # تنظيف الملخص من رموز HTML 🧹
+        summary = BeautifulSoup(news.summary, 'html.parser').get_text()[:250] + "..."
+        
+        # تنسيق الرسالة
+        message = f"📰 *{news.title}*\n\n{summary}"
+        
+        # إضافة زر "إقرأ المزيد" 🔘
         markup = telebot.types.InlineKeyboardMarkup()
-        btn_read = telebot.types.InlineKeyboardButton("🔗 قراءة الخبر كاملاً", url=news['link'])
-        markup.add(btn_read)
+        markup.add(telebot.types.InlineKeyboardButton("🔗 إقرأ الخبر كاملاً", url=news.link))
         
         # إرسال الخبر للقناة
-        bot.send_photo(
-            CHANNEL, 
-            news['image'], 
-            caption=news['caption'], 
-            parse_mode='Markdown',
-            reply_markup=markup
-        )
+        bot.send_message(CHANNEL_ID, message, parse_mode='Markdown', reply_markup=markup)
+        print("✅ تم نشر الخبر بنجاح!")
 
 if __name__ == "__main__":
-    try:
-        run_visionary_auto_news()
-        print("✅ تم جلب ونشر الخبر التلقائي بنجاح!")
-    except Exception as e:
-        print(f"❌ خطأ في النظام: {e}")
+    start_bot()
