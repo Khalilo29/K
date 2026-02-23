@@ -3,61 +3,52 @@ import telebot
 import feedparser
 import random
 from bs4 import BeautifulSoup
-from deep_translator import GoogleTranslator
 
-# الإعدادات 🗝️
+# Configuration 🗝️
 TOKEN = os.environ.get('BOT_TOKEN')
 CHANNEL_ID = os.environ.get('CHANNEL_ID')
 bot = telebot.TeleBot(TOKEN)
 
-# مصادر متنوعة لضمان وجود محتوى كل 5 دقائق 📡
-SOURCES = {
-    "AR": [
-        "https://www.aitnews.com/feed", 
-        "https://www.tech-wd.com/wd/feed",
-        "https://ar.technologyreview.com/feed/"
-    ],
-    "EN": [
-        "https://www.theverge.com/rss/index.xml", 
-        "https://www.engadget.com/rss.xml",
-        "https://www.wired.com/feed/rss"
-    ]
-}
+# Top-tier English Tech Sources 📡
+SOURCES = [
+    "https://www.theverge.com/rss/index.xml",
+    "https://www.engadget.com/rss.xml",
+    "https://www.wired.com/feed/rss",
+    "https://techcrunch.com/feed/",
+    "https://www.cnet.com/rss/news/"
+]
 
 HISTORY_FILE = "published_urls.txt"
 
-def translate_content(text):
-    try:
-        return GoogleTranslator(source='en', target='ar').translate(text)
-    except:
-        return text
-
 def get_image(entry):
+    """Extracts the best quality image from the news entry 🖼️"""
+    if 'links' in entry:
+        for link in entry.links:
+            if 'image' in link.get('type', ''): return link.href
     soup = BeautifulSoup(entry.summary if 'summary' in entry else "", 'html.parser')
     img = soup.find('img')
-    if img: return img['src']
-    if 'media_content' in entry: return entry.media_content[0]['url']
-    return None
+    return img['src'] if img else None
 
-def run_visionary_autopilot():
+def run_english_visionary():
+    # Load Memory
     if os.path.exists(HISTORY_FILE):
         with open(HISTORY_FILE, "r") as f: published_urls = f.read().splitlines()
     else: published_urls = []
 
-    # دمج المصادر والبحث عن خبر جديد
-    lang_type = random.choice(["AR", "EN"])
-    feed = feedparser.parse(random.choice(SOURCES[lang_type]))
+    # Pick a random source and fetch news
+    feed = feedparser.parse(random.choice(SOURCES))
     
     for entry in feed.entries[:15]:
         if entry.link not in published_urls:
-            title = translate_content(entry.title) if lang_type == "EN" else entry.title
+            title = entry.title
             img_url = get_image(entry)
             
-            header = "🌍 <b>Visionary Global | خبر عالمي</b>" if lang_type == "EN" else "🔔 <b>Visionary News | خبر عاجل</b>"
-            caption = f"{header}\n\n🔥 {title}\n\n🌐 #تكنولوجيا #الذكاء_الاصطناعي\n📱 @Visionary_X"
+            # Formatting the post in Professional English 🚀
+            header = "🌐 <b>VISIONARY X | Global Tech Update</b>"
+            caption = f"{header}\n\n🔥 <b>{title}</b>\n\n🔹 #TechNews #AI #Innovation\n📱 @Visionary_X"
             
             markup = telebot.types.InlineKeyboardMarkup()
-            markup.row(telebot.types.InlineKeyboardButton("🔗 تفاصيل الخبر", url=entry.link))
+            markup.row(telebot.types.InlineKeyboardButton("🔗 Read Full Article", url=entry.link))
             markup.row(telebot.types.InlineKeyboardButton("👍", callback_data="1"), 
                        telebot.types.InlineKeyboardButton("🔥", callback_data="2"),
                        telebot.types.InlineKeyboardButton("🚀", callback_data="3"))
@@ -68,12 +59,13 @@ def run_visionary_autopilot():
                 else:
                     bot.send_message(CHANNEL_ID, caption, parse_mode='HTML', reply_markup=markup)
                 
+                # Save to memory
                 with open(HISTORY_FILE, "a") as f: f.write(entry.link + "\n")
-                print(f"✅ تم النشر بنجاح: {title}")
+                print(f"✅ Successfully Published: {title}")
                 return
             except Exception as e:
-                print(f"❌ خطأ: {e}")
-    print("💤 لا توجد أخبار جديدة في هذه الخمس دقائق.")
+                print(f"❌ Error: {e}")
+    print("💤 No new global updates in the last 5 minutes.")
 
 if __name__ == "__main__":
-    run_visionary_autopilot()
+    run_english_visionary()
