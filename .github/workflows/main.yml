@@ -1,30 +1,29 @@
-name: run-bot-automatically
+name: Continuous-Bot-24-7
 
 on:
+  schedule:
+    - cron: '0 */4 * * *' # سأقوم بإعادة تشغيل البوت لك كل 4 ساعات تلقائياً لضمان بقائه نشطاً
   push:
     branches: [ main ]
-  schedule:
-    - cron: '0 * * * *' # سأقوم بتشغيل البوت لك تلقائياً كل رأس ساعة
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
-  build:
+  run-non-stop:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
-      - name: Install dependencies
+      - name: Install Libraries
         run: |
-          python -m pip install --upgrade pip
           pip install pyTelegramBotAPI deep-translator
 
-      - name: Run Bot
+      - name: Run Global Engine
         run: python bot.py
         env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }} # تأكد أنك أضفت التوكن في Secrets بهذا الاسم
