@@ -1,12 +1,29 @@
-import telebot
-import os # مكتبة أساسية للتعامل مع النظام
+name: run-bot
 
-# سيقوم الكود الآن بسحب التوكن من إعدادات GitHub التي أضفتها
-TOKEN = os.getenv('BOT_TOKEN')
-bot = telebot.TeleBot(TOKEN)
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
-@bot.message_handler(commands=['start'])
-def welcome(message):
-    bot.reply_to(message, "تم الاتصال بنجاح! البوت يعمل الآن.")
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-bot.polling()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyTelegramBotAPI deep-translator
+
+      - name: Run Global Engine
+        run: python bot.py
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
