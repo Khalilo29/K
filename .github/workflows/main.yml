@@ -1,33 +1,35 @@
-name: Visionary News Bot
-
+name: Visionary X Bot
 on:
   schedule:
-    # سيقوم النظام بتشغيل البوت كل ساعة (توقيت 0 دقيقة من كل ساعة)
-    - cron: '0 * * * *'
-  workflow_dispatch: # يتيح لك تشغيله يدوياً أيضاً للخدمة
+    - cron: '0 */2 * * *' # يعمل كل ساعتين تلقائياً
+  workflow_dispatch: # للتشغيل اليدوي
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install pyTelegramBotAPI feedparser beautifulsoup4
 
       - name: Run Bot
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
         run: python bot.py
-      - name: Install dependencies
+
+      - name: Save memory
         run: |
-          pip install -r requirements.txt
+          git config --global user.name "Visionary Bot"
+          git config --global user.email "bot@visionary.com"
+          git add published_urls.txt
+          git commit -m "Update published news history [skip ci]" || echo "No changes to commit"
+          git push
