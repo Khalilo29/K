@@ -1,11 +1,13 @@
 import telebot
+import os
 from deep_translator import GoogleTranslator
 
-# هنا تضع التوكن الخاص بالبوت
-bot = telebot.TeleBot("YOUR_BOT_TOKEN_HERE")
+# قراءة التوكن من إعدادات GitHub الآمنة
+TOKEN = os.getenv('BOT_TOKEN')
+bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(commands=['start'])
-def send_welcome(message):
-    bot.reply_to(message, "أهلاً بك! أنا بوت الترجمة، أرسل أي نص لترجمته.")
+def start(message):
+    bot.reply_to(message, "تم تشغيل البوت بنجاح!")
 
-# ... باقي الكود الخاص بك
+bot.polling()
