@@ -4,71 +4,57 @@ import feedparser
 import random
 import requests
 from bs4 import BeautifulSoup
+from deep_translator import GoogleTranslator
 
-# Configuration 🗝️
+# الربط البرمجي 🗝️
 TOKEN = os.environ.get('BOT_TOKEN')
 CHANNEL_ID = os.environ.get('CHANNEL_ID')
 bot = telebot.TeleBot(TOKEN)
 
+# مصادر الأنباء العالمية 📡
 SOURCES = [
     "https://www.theverge.com/rss/index.xml",
     "https://techcrunch.com/feed/",
-    "https://www.engadget.com/rss.xml"
+    "https://www.wired.com/feed/rss"
 ]
 
 HISTORY_FILE = "published_urls.txt"
 
-def get_crypto_prices():
-    """Fetches live BTC and ETH prices 💰"""
+def translate_ar(text):
+    try: return GoogleTranslator(source='en', target='ar').translate(text)
+    except: return text
+
+def get_crypto():
     try:
-        url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd"
-        data = requests.get(url).json()
-        btc = data['bitcoin']['usd']
-        eth = data['ethereum']['usd']
-        return f"📊 <b>Market Update</b>\n\n🪙 BTC: <b>${btc:,}</b>\n💎 ETH: <b>${eth:,}</b>\n\n#Crypto #Bitcoin #ETH"
-    except:
-        return None
+        data = requests.get("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd").json()
+        return f"📊 <b>تحديث الأسواق اللحظي</b>\n\n🪙 BTC: <b>${data['bitcoin']['usd']:,}</b>\n💎 ETH: <b>${data['ethereum']['usd']:,}</b>\n\n#Visionary_X #Crypto"
+    except: return None
 
-def get_image(entry):
-    soup = BeautifulSoup(entry.summary if 'summary' in entry else "", 'html.parser')
-    img = soup.find('img')
-    return img['src'] if img else None
-
-def run_visionary_pro():
-    # 1. Load Memory
+def run_pilot():
     if os.path.exists(HISTORY_FILE):
-        with open(HISTORY_FILE, "r") as f: published_urls = f.read().splitlines()
-    else: published_urls = []
+        with open(HISTORY_FILE, "r") as f: published = f.read().splitlines()
+    else: published = []
 
-    # 2. Decide: Post Crypto or News?
-    # (Optional: Only post crypto once an hour or randomly)
-    if random.random() < 0.1:  # 10% chance to post crypto update every 5 mins
-        crypto_update = get_crypto_prices()
-        if crypto_update:
-            bot.send_message(CHANNEL_ID, crypto_update, parse_mode='HTML')
-            return
+    # 10% احتمال لنشر أسعار الكريبتو
+    if random.random() < 0.1:
+        msg = get_crypto()
+        if msg: bot.send_message(CHANNEL_ID, msg, parse_mode='HTML'); return
 
-    # 3. Post News
+    # جلب ونشر الأخبار التقنية
     feed = feedparser.parse(random.choice(SOURCES))
     for entry in feed.entries[:10]:
-        if entry.link not in published_urls:
-            title = entry.title
-            img_url = get_image(entry)
-            caption = f"🌐 <b>VISIONARY X | Global Update</b>\n\n🔥 <b>{title}</b>\n\n#Tech #Innovation @Visionary_X"
+        if entry.link not in published:
+            title = translate_ar(entry.title)
+            caption = f"🌐 <b>تغطية حصرية | Visionary X</b>\n\n🔥 {title}\n\n#تقنية #أخبار_عالمية @Visionary_X"
             
             markup = telebot.types.InlineKeyboardMarkup()
-            markup.add(telebot.types.InlineKeyboardButton("🔗 Full Story", url=entry.link))
-
+            markup.row(telebot.types.InlineKeyboardButton("🔗 التفاصيل الكاملة", url=entry.link))
+            
             try:
-                if img_url:
-                    bot.send_photo(CHANNEL_ID, img_url, caption=caption, parse_mode='HTML', reply_markup=markup)
-                else:
-                    bot.send_message(CHANNEL_ID, caption, parse_mode='HTML', reply_markup=markup)
-                
+                bot.send_message(CHANNEL_ID, caption, parse_mode='HTML', reply_markup=markup)
                 with open(HISTORY_FILE, "a") as f: f.write(entry.link + "\n")
                 return
-            except Exception as e:
-                print(f"Error: {e}")
+            except: pass
 
 if __name__ == "__main__":
-    run_visionary_pro()
+    run_pilot()
