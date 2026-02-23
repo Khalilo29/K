@@ -49,3 +49,6 @@ if __name__ == "__main__":
 # إضافة الوسوم تلقائياً لزيادة الانتشار 🏷️
 hashtags = "\n\n#Visionary_X #تقنية #ذكاء_اصطناعي #أخبار_التقنية #تكنولوجيا"
 caption += hashtags
+# إضافة لمسة احترافية لزيادة الوصول 📈
+hashtags = "\n\n#Visionary_X #تقنية #AI #أخبار_التكنولوجيا"
+final_message = message + hashtags
