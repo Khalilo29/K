@@ -46,3 +46,6 @@ def start_bot():
 
 if __name__ == "__main__":
     start_bot()
+# إضافة الوسوم تلقائياً لزيادة الانتشار 🏷️
+hashtags = "\n\n#Visionary_X #تقنية #ذكاء_اصطناعي #أخبار_التقنية #تكنولوجيا"
+caption += hashtags
