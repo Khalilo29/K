@@ -1,13 +1,12 @@
 import telebot
-import os
-from deep_translator import GoogleTranslator
+import os # مكتبة أساسية للتعامل مع النظام
 
-# قراءة التوكن من إعدادات GitHub الآمنة
+# سيقوم الكود الآن بسحب التوكن من إعدادات GitHub التي أضفتها
 TOKEN = os.getenv('BOT_TOKEN')
 bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(commands=['start'])
-def start(message):
-    bot.reply_to(message, "تم تشغيل البوت بنجاح!")
+def welcome(message):
+    bot.reply_to(message, "تم الاتصال بنجاح! البوت يعمل الآن.")
 
 bot.polling()
