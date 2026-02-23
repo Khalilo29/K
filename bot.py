@@ -2,7 +2,7 @@ import os
 import telebot
 
 # هنا نختبر هل GitHub يرسل البيانات فعلاً للكود
-TOKEN = os.environ.get('TELEGRAM_TOKEN')
+TOKEN = os.environ.get('BOT_TOKEN')
 CHANNEL = os.environ.get('CHANNEL_ID')
 
 if TOKEN is None:
