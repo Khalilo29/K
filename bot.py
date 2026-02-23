@@ -1,29 +1,24 @@
-name: run-bot
+import telebot
+import os
+from deep_translator import GoogleTranslator
 
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+# سحب التوكن من النظام (الذي سنضبطه في إعدادات GitHub)
+TOKEN = os.getenv('BOT_TOKEN')
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+if not TOKEN:
+    print("خطأ: لم يتم العثور على التوكن!")
+else:
+    bot = telebot.TeleBot(TOKEN)
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    @bot.message_handler(commands=['start'])
+    def send_welcome(message):
+        bot.reply_to(message, "أهلاً بك! أنا بوت الترجمة. أرسل نصاً للترجمة.")
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
+    @bot.message_handler(func=lambda message: True)
+    def translate_message(message):
+        # مثال لترجمة النص إلى العربية
+        translated = GoogleTranslator(source='auto', target='ar').translate(message.text)
+        bot.reply_to(message, translated)
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyTelegramBotAPI deep-translator
-
-      - name: Run Global Engine
-        run: python bot.py
-        env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+    print("البوت يعمل الآن...")
+    bot.polling()
