@@ -1,26 +1,14 @@
-import telebot
-import random
-import time
 import os
+import telebot
 
-# إعداد البيانات من البيئة الأمنية (Secrets)
-API_KEY = os.getenv('BOT_TOKEN')
-CHANNEL_ID = os.getenv('CHANNEL_ID')
+TOKEN = os.environ.get('TELEGRAM_TOKEN')
+ID = os.environ.get('CHANNEL_ID')
 
-bot = telebot.TeleBot(API_KEY)
+bot = telebot.TeleBot(TOKEN)
 
-def send_post():
-    # قراءة المنشورات من ملف content.txt
-    with open('content.txt', 'r', encoding='utf-8') as f:
-        posts = f.readlines()
-    
-    # اختيار منشور عشوائي
-    post = random.choice(posts).strip()
-    
-    # إرسال المنشور للقناة
-    if post:
-        bot.send_message(CHANNEL_ID, post)
-        print(f"تم نشر: {post}")
-
-if __name__ == "__main__":
-    send_post()
+try:
+    print(f"Checking connection to: {ID}")
+    bot.send_message(ID, "اختبار الاتصال: البوت يعمل الآن! 🎉")
+    print("Success!")
+except Exception as e:
+    print(f"Error detail: {e}")
