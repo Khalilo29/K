@@ -1,30 +1,34 @@
-name: Visionary X English Engine
+name: Run Global Engine Bot
+
 on:
+  push:
+    branches: [ main, master ] # يعمل عند رفع كود جديد
   schedule:
-    - cron: '*/5 * * * *' # Fast Pulse: Every 5 Minutes 🚀
-  workflow_dispatch:
+    - cron: '0 */6 * * *' # مثال: يعمل كل 6 ساعات تلقائياً
+  workflow_dispatch: # يتيح لك تشغيله يدوياً من واجهة GitHub
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.10' # يمكنك تغيير الإصدار حسب حاجتك
+
       - name: Install dependencies
-        run: pip install pyTelegramBotAPI feedparser beautifulsoup4
-      - name: Run Global Engine
-        env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
-        run: python bot.py
-      - name: Sync Memory
         run: |
-          git config --global user.name "Visionary-AI-Global"
-          git config --global user.email "ai@visionary.com"
-          git add published_urls.txt || echo "No changes"
-          git commit -m "Memory Sync [skip ci]" || echo "No changes"
-          git push
+          python -m pip install --upgrade pip
+          pip install deep-translator
+          # إذا كان لديك مكتبات أخرى مثل pandas أو telebot أضفها هنا:
+          # pip install pandas PyQRCode
+
+      - name: Run Global Engine
+        run: python bot.py
+        env:
+          # إذا كان البوت يحتاج لرموز سرية (Tokens)، أضفها في Secrets واكتبها هنا
+          API_KEY: ${{ secrets.API_KEY }} 
