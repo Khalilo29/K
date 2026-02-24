@@ -1,4 +1,4 @@
-name: Ultimate-Service-24-7
+name: Ultimate-Service-Bot-24-7
 
 on:
   schedule:
@@ -18,5 +18,5 @@ jobs:
         run: pip install pyTelegramBotAPI
       - name: Start Bot
         env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }} # هذا السطر هو مفتاح الحل
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }} # هذا السطر هو الذي سيعالج خطأ NoneType
         run: python bot.py
